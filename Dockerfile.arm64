@@ -1,0 +1,23 @@
+FROM alpine:latest
+
+LABEL maintainer="XoL <MephistoXoL@gmail.com>" description="Fairwinds Polaris keeps your clusters sailing smoothly" version="amr64 v1.2.1"
+
+WORKDIR /usr/local/bin
+
+RUN apk --no-cache add ca-certificates \
+    bash \
+    curl \
+    jq
+
+RUN addgroup -S polaris && adduser -u 1200 -S polaris -G polaris
+USER 1200
+# GET VERSION, URL AND INSTALL
+USER root
+RUN VERSION=$(curl -sX GET https://api.github.com/repos/FairwindsOps/polaris/releases | jq -r 'first(.[]) | .url') && \
+    URL=$(curl -s $VERSION | jq -r '.assets[].browser_download_url' | grep arm64) && \
+    curl -SL $URL | tar xz polaris 
+
+
+WORKDIR /opt/app
+
+CMD ["polaris"]
